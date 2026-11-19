@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reto Motivacional: El Caso de Mateo — Kahoot en Vivo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- PeerJS opcional para conexión P2P real entre dispositivos sin bloquear la carga -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+  <!-- Confetti ligero opcional -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            display: ['Montserrat', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            kRed: '#E21B3C',
+            kBlue: '#1368CE',
+            kAmber: '#D89E00',
+            kGreen: '#26890C',
+            kPurple: '#46178F',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: radial-gradient(circle at top left, #2e1065 0%, #1e1b4b 45%, #090d16 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .font-display {
+      font-family: 'Montserrat', system-ui, sans-serif;
+    }
+
+    .k-btn-3d {
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.38);
+    }
+
+    .k-btn-3d:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.07);
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.42);
+    }
+
+    .k-btn-3d:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.9) translateY(8px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .animate-pop {
+      animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes pulseTimer {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .timer-urgent {
+      animation: pulseTimer 0.6s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-amber-400 selection:text-slate-950">
+
+  <!-- Toast no bloqueante -->
+  <div id="toast-box" class="fixed top-4 right-4 z-50 hidden max-w-sm rounded-2xl border border-white/15 bg-slate-900/95 px-4 py-3 text-sm font-semibold text-white shadow-2xl backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <span id="toast-dot" class="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-400"></span>
+      <p id="toast-msg" class="leading-snug"></p>
+    </div>
+  </div>
+
+  <!-- Barra Superior -->
+  <header class="sticky top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <button id="btn-nav-home" type="button" class="flex items-center gap-3 text-left group cursor-pointer focus:outline-none">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-kRed via-kAmber to-kBlue font-display text-lg font-black text-white shadow-lg group-hover:scale-105 transition">
+          K!
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-widest text-amber-300">UAFAM · Grupo 4 · Psicología de la Motivación</div>
+          <div class="font-display text-sm sm:text-base font-extrabold text-white leading-tight">Reto Motivacional: El Caso de Mateo</div>
+        </div>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <div id="net-badge" class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1.5 text-xs font-bold text-emerald-200">
+          <span id="net-dot" class="h-2 w-2 rounded-full bg-emerald-400"></span>
+          <span id="net-label">Sala Lista (0 ms)</span>
+        </div>
+
+        <button
+          id="btn-nav-reuse"
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-amber-400/35 bg-amber-400/15 px-3.5 py-2 text-xs sm:text-sm font-bold text-amber-200 transition hover:bg-amber-400/25 cursor-pointer"
+        >
+          <span>♻️ Reutilizar / Editar</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 1: INICIO                                                       -->
+    <!-- ===================================================================== -->
+    <section id="view-home" class="animate-pop space-y-6">
+      <div class="relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-indigo-950/95 via-slate-900/95 to-purple-950/95 p-6 sm:p-10 shadow-2xl">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
+          <div class="space-y-5 lg:col-span-7">
+            <div class="inline-flex flex-wrap items-center gap-2 rounded-full border border-indigo-400/30 bg-indigo-500/15 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-indigo-200">
+              <span>15 Preguntas del Guion</span>
+              <span>·</span>
+              <span>15s por Pregunta</span>
+              <span>·</span>
+              <span>QR + PIN Instantáneo</span>
+            </div>
+
+            <h1 class="font-display text-3xl font-black tracking-tight text-white sm:text-5xl leading-[1.12]">
+              Reto Motivacional: <span class="bg-gradient-to-r from-amber-300 via-rose-400 to-sky-300 bg-clip-text text-transparent">El Caso de Mateo</span>
+            </h1>
+
+            <p class="text-base sm:text-lg text-slate-300 leading-relaxed">
+              Genera al instante una sala con <strong class="text-white">Código QR y PIN de 6 dígitos</strong> para que tus compañeros jueguen desde sus teléfonos, o proyecta el <strong class="text-amber-200">Modo 1 Pantalla</strong> para competir en vivo durante la exposición.
+            </p>
+
+            <!-- Botones principales de modo -->
+            <div class="grid grid-cols-1 gap-4 pt-1 sm:grid-cols-3">
+              <button
+                id="btn-create-host"
+                type="button"
+                class="k-btn-3d flex flex-col items-start justify-between rounded-2xl bg-kPurple border border-purple-400/50 p-5 text-left text-white cursor-pointer"
+              >
+                <span class="rounded-lg bg-white/15 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-300">Proyector / QR</span>
+                <div class="mt-3 font-display text-lg font-black">Crear Sala en Vivo</div>
+                <p class="mt-1 text-xs text-purple-200">Genera QR, PIN y marcador en tiempo real.</p>
+              </button>
+
+              <button
+                id="btn-join-player"
+                type="button"
+                class="k-btn-3d flex flex-col items-start justify-between rounded-2xl bg-kBlue border border-sky-400/50 p-5 text-left text-white cursor-pointer"
+              >
+                <span class="rounded-lg bg-white/15 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-sky-200">Celular / Pestaña</span>
+                <div class="mt-3 font-display text-lg font-black">Unirse con PIN</div>
+                <p class="mt-1 text-xs text-sky-100">Ingresa el PIN de 6 dígitos y responde.</p>
+              </button>
+
+              <button
+                id="btn-quick-single"
+                type="button"
+                class="k-btn-3d flex flex-col items-start justify-between rounded-2xl bg-kGreen border border-emerald-400/50 p-5 text-left text-white cursor-pointer"
+              >
+                <span class="rounded-lg bg-white/15 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-emerald-200">Sin Celulares</span>
+                <div class="mt-3 font-display text-lg font-black">Modo 1 Pantalla</div>
+                <p class="mt-1 text-xs text-emerald-100">Juega directo en el proyector con el grupo.</p>
+              </button>
+            </div>
+
+            <!-- Barra de configuración rápida -->
+            <div class="rounded-2xl border border-white/10 bg-slate-950/65 p-4 flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <label for="select-time-per-q" class="text-sm font-bold text-slate-200">⏱️ Tiempo por pregunta:</label>
+                <select
+                  id="select-time-per-q"
+                  class="rounded-xl border border-white/15 bg-slate-900 px-3 py-2 text-sm font-extrabold text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
+                >
+                  <option value="10">10 segundos</option>
+                  <option value="15" selected>15 segundos</option>
+                  <option value="20">20 segundos</option>
+                  <option value="30">30 segundos</option>
+                </select>
+              </div>
+              <div class="text-xs text-slate-300">
+                Quiz cargado: <strong id="badge-quiz-summary" class="text-emerald-300">El Caso de Mateo (15 preguntas)</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna derecha: Entrada rápida PIN + Guía Reutilización -->
+          <div class="space-y-4 lg:col-span-5">
+            <div class="rounded-2xl border border-white/10 bg-slate-950/80 p-5 space-y-3.5">
+              <h2 class="font-display text-sm font-extrabold uppercase tracking-wider text-amber-300">¿Tienes un PIN de Sala?</h2>
+              <div class="flex gap-2">
+                <input
+                  id="home-pin-input"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="6"
+                  placeholder="Ej. 482915"
+                  class="w-full rounded-xl border border-white/15 bg-slate-900 px-4 py-3 text-center font-display text-lg font-black tracking-[0.22em] text-white placeholder-slate-500 focus:border-sky-400 focus:outline-none"
+                />
+                <button
+                  id="home-pin-enter-btn"
+                  type="button"
+                  class="rounded-xl bg-emerald-500 px-5 py-3 font-display text-sm font-black text-slate-950 transition hover:bg-emerald-400 cursor-pointer"
+                >
+                  Entrar
+                </button>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Tip: Si estás probando en tu computadora, abre una <strong class="text-slate-200">segunda pestaña</strong> con este mismo archivo/enlace e ingresa el PIN que se genere.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-amber-400/25 bg-amber-500/10 p-5 space-y-2">
+              <div class="flex items-center justify-between">
+                <h3 class="font-display text-sm font-extrabold text-amber-200">♻️ Reutilizable para Futuras Clases</h3>
+                <button id="home-open-editor-btn" type="button" class="text-xs font-extrabold text-white underline hover:text-amber-200 cursor-pointer">
+                  Editar / Importar
+                </button>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Cada vez que creas una sala se genera un PIN y QR nuevo. Además, puedes editar las preguntas o importar un archivo JSON/CSV para cualquier otra asignatura.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 2: UNIRSE COMO JUGADOR                                          -->
+    <!-- ===================================================================== -->
+    <section id="view-player-join" class="hidden animate-pop mx-auto max-w-md">
+      <div class="rounded-3xl border border-white/15 bg-slate-900/95 p-6 sm:p-8 shadow-2xl space-y-5">
+        <div class="text-center space-y-1">
+          <span class="inline-block rounded-full bg-kBlue/25 border border-sky-400/30 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-sky-300">
+            Pantalla de Jugador
+          </span>
+          <h2 class="font-display text-2xl font-black text-white">Entrar a la Partida</h2>
+          <p class="text-xs text-slate-400">Escribe el PIN de 6 dígitos proyectado y tu nombre</p>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label for="join-pin" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">PIN de la Sala</label>
+            <input
+              id="join-pin"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              placeholder="000000"
+              class="w-full rounded-2xl border border-white/15 bg-slate-950 px-4 py-3.5 text-center font-display text-2xl font-black tracking-[0.28em] text-amber-300 placeholder-slate-600 focus:border-amber-400 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label for="join-name" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Tu Nombre o Equipo</label>
+            <input
+              id="join-name"
+              type="text"
+              maxlength="22"
+              placeholder="Ej. Ana Francisca, Equipo 1..."
+              class="w-full rounded-2xl border border-white/15 bg-slate-950 px-4 py-3 text-base font-bold text-white placeholder-slate-500 focus:border-sky-400 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Elige tu Avatar</label>
+            <div id="avatar-grid" class="grid grid-cols-6 gap-2"></div>
+          </div>
+
+          <button
+            id="btn-confirm-join"
+            type="button"
+            class="k-btn-3d w-full rounded-2xl bg-emerald-500 py-4 font-display text-lg font-black text-slate-950 cursor-pointer"
+          >
+            ¡Listo, Entrar!
+          </button>
+
+          <button
+            id="btn-cancel-join"
+            type="button"
+            class="w-full rounded-xl py-2 text-xs font-bold text-slate-400 hover:text-white cursor-pointer"
+          >
+            ← Volver al inicio
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 3: LOBBY DEL ANFITRIÓN (CÓDIGO QR + PIN + LISTA DE JUGADORES)   -->
+    <!-- ===================================================================== -->
+    <section id="view-host-lobby" class="hidden animate-pop space-y-6">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <!-- Tarjeta QR y PIN -->
+        <div class="rounded-3xl border border-white/15 bg-slate-900/95 p-6 sm:p-8 text-center shadow-2xl lg:col-span-5 flex flex-col justify-between space-y-5">
+          <div class="space-y-1.5">
+            <span class="inline-block rounded-full bg-amber-400/20 border border-amber-400/40 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-amber-300">
+              Escanea con tu Celular
+            </span>
+            <div class="text-xs font-bold uppercase tracking-widest text-slate-400 pt-1">PIN DE LA SALA</div>
+            <div id="lobby-pin-text" class="font-display text-5xl sm:text-6xl font-black tracking-[0.15em] text-white select-all">
+              000000
+            </div>
+          </div>
+
+          <!-- Canvas QR Autónomo -->
+          <div class="mx-auto rounded-2xl bg-white p-4 shadow-xl">
+            <canvas id="qr-canvas" width="216" height="216" class="block mx-auto"></canvas>
+          </div>
+
+          <div class="space-y-2">
+            <div id="lobby-url-box" class="truncate rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-xs font-mono text-slate-300"></div>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                id="btn-copy-link"
+                type="button"
+                class="rounded-xl border border-white/15 bg-white/10 py-2.5 px-3 text-xs font-bold text-white hover:bg-white/15 cursor-pointer"
+              >
+                📋 Copiar Enlace
+              </button>
+              <button
+                id="btn-add-demo-players"
+                type="button"
+                class="rounded-xl border border-amber-400/35 bg-amber-400/15 py-2.5 px-3 text-xs font-bold text-amber-200 hover:bg-amber-400/25 cursor-pointer"
+              >
+                🤖 +4 Jugadores Demo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta Jugadores Conectados -->
+        <div class="rounded-3xl border border-white/15 bg-slate-900/95 p-6 sm:p-8 shadow-2xl lg:col-span-7 flex flex-col justify-between space-y-6">
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <h2 class="font-display text-xl sm:text-2xl font-black text-white">Jugadores en la Sala</h2>
+                <p class="text-xs sm:text-sm text-slate-400">Se conectan por QR, por PIN en otra pestaña o con jugadores demo</p>
+              </div>
+              <div class="flex items-center gap-2 rounded-2xl border border-indigo-400/30 bg-indigo-500/20 px-4 py-2">
+                <span class="text-lg">👥</span>
+                <span id="lobby-count-badge" class="font-display text-2xl font-black text-white">0</span>
+              </div>
+            </div>
+
+            <div id="lobby-players-container" class="grid grid-cols-2 gap-3 sm:grid-cols-3 max-h-[310px] overflow-y-auto pr-1">
+              <div class="col-span-full rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-slate-400">
+                Esperando participantes... Puedes iniciar en cualquier momento o añadir jugadores demo para probar.
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+            <div class="text-xs text-slate-300">
+              <strong id="lobby-meta-q" class="text-white">15 preguntas</strong> · <strong id="lobby-meta-t" class="text-amber-300">15s</strong> por pregunta
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                id="btn-lobby-cancel"
+                type="button"
+                class="rounded-xl px-4 py-3 text-xs sm:text-sm font-bold text-rose-300 hover:bg-rose-500/10 cursor-pointer"
+              >
+                Salir
+              </button>
+              <button
+                id="btn-start-match"
+                type="button"
+                class="k-btn-3d rounded-2xl bg-emerald-500 px-7 py-3.5 font-display text-base sm:text-lg font-black text-slate-950 cursor-pointer"
+              >
+                ▶ Iniciar Juego
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 4: JUEGO EN VIVO — PROYECTOR / ANFITRIÓN (Y MODO 1 PANTALLA)    -->
+    <!-- ===================================================================== -->
+    <section id="view-host-game" class="hidden animate-pop space-y-5">
+      <!-- HUD Superior -->
+      <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-900/95 px-5 py-3.5">
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="rounded-xl bg-kPurple px-3 py-1.5 font-display text-xs sm:text-sm font-black text-white">
+            PIN: <span id="hud-host-pin">000000</span>
+          </span>
+          <span id="hud-host-qnum" class="rounded-xl bg-white/10 px-3 py-1.5 font-display text-xs sm:text-sm font-extrabold text-amber-300">
+            Pregunta 1 / 15
+          </span>
+          <span id="hud-host-topic" class="rounded-xl bg-indigo-500/20 px-3 py-1.5 text-xs font-bold text-indigo-200">
+            Tema
+          </span>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div id="hud-answers-box" class="text-right">
+            <div class="text-[11px] font-bold uppercase text-slate-400">Respuestas</div>
+            <div id="hud-host-answers" class="font-display text-lg font-black text-emerald-400">0 / 0</div>
+          </div>
+
+          <div
+            id="hud-host-timer"
+            class="flex h-16 w-16 items-center justify-center rounded-full border-4 border-amber-400 bg-slate-950 font-display text-2xl font-black text-amber-300 shadow-lg"
+          >
+            15
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa Pregunta Activa -->
+      <div id="stage-host-question" class="space-y-5">
+        <div class="rounded-3xl border border-white/15 bg-slate-900/95 p-7 sm:p-10 text-center shadow-2xl">
+          <h2 id="host-q-text" class="font-display text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-snug">
+            Enunciado
+          </h2>
+        </div>
+
+        <!-- 4 Opciones Estilo Kahoot (también clicables en Modo 1 Pantalla) -->
+        <div id="host-options-container" class="grid grid-cols-1 gap-4 sm:grid-cols-2"></div>
+
+        <!-- Controles del Presentador -->
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-900/85 px-5 py-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btn-host-pause" type="button" class="rounded-xl bg-white/10 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-white/15 cursor-pointer">
+              ⏸ Pausar
+            </button>
+            <button id="btn-host-reveal" type="button" class="rounded-xl border border-amber-400/40 bg-amber-400/20 px-4 py-2 text-xs sm:text-sm font-bold text-amber-200 hover:bg-amber-400/30 cursor-pointer">
+              👁 Mostrar Respuesta Ya
+            </button>
+          </div>
+          <button id="btn-host-finish-all" type="button" class="text-xs font-bold text-rose-300 hover:underline cursor-pointer">
+            Finalizar y ver podio
+          </button>
+        </div>
+      </div>
+
+      <!-- Etapa Resultados de Ronda + Top 5 -->
+      <div id="stage-host-results" class="hidden space-y-5 animate-pop">
+        <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <div class="rounded-3xl border border-white/15 bg-slate-900/95 p-6 space-y-5 lg:col-span-7">
+            <div class="flex items-center justify-between">
+              <h3 class="font-display text-lg font-black text-white">Resultado de la Pregunta</h3>
+              <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-extrabold text-emerald-300">✓ Respuesta Correcta</span>
+            </div>
+
+            <div id="host-results-bars" class="space-y-3"></div>
+
+            <div class="rounded-2xl border border-indigo-400/30 bg-indigo-950/60 p-4 space-y-1.5">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-indigo-300">Explicación según el Guion</div>
+              <p id="host-results-explanation" class="text-sm text-slate-100 leading-relaxed"></p>
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-white/15 bg-slate-900/95 p-6 flex flex-col justify-between space-y-5 lg:col-span-5">
+            <div class="space-y-3">
+              <h3 class="font-display text-lg font-black text-amber-300">🏆 Top 5 Clasificación</h3>
+              <div id="host-top5-container" class="space-y-2.5"></div>
+            </div>
+
+            <button
+              id="btn-host-next-q"
+              type="button"
+              class="k-btn-3d w-full rounded-2xl bg-indigo-500 py-4 font-display text-base sm:text-lg font-black text-white cursor-pointer"
+            >
+              Siguiente Pregunta →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 5: JUEGO EN VIVO — PANTALLA DEL JUGADOR (CELULAR / PESTAÑA)     -->
+    <!-- ===================================================================== -->
+    <section id="view-player-game" class="hidden animate-pop mx-auto max-w-lg space-y-4">
+      <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-3">
+        <div class="flex items-center gap-2.5">
+          <span id="p-hud-avatar" class="text-2xl">🎓</span>
+          <div>
+            <div id="p-hud-name" class="font-display text-sm font-black text-white">Jugador</div>
+            <div class="text-[11px] text-slate-400">PIN: <span id="p-hud-pin">000000</span></div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <span id="p-hud-streak" class="hidden rounded-full bg-amber-400/20 px-2.5 py-1 text-xs font-black text-amber-300">🔥 2</span>
+          <div class="rounded-xl border border-white/10 bg-slate-950 px-3 py-1.5 text-right">
+            <div class="text-[10px] uppercase text-slate-400 font-bold">Puntos</div>
+            <div id="p-hud-score" class="font-display text-sm font-black text-emerald-400">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subvista Espera -->
+      <div id="p-sub-lobby" class="rounded-3xl border border-white/15 bg-slate-900/95 p-8 text-center space-y-4 shadow-2xl">
+        <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/20 text-4xl">
+          <span id="p-lobby-avatar">🎓</span>
+        </div>
+        <h2 class="font-display text-2xl font-black text-white">¡Estás dentro!</h2>
+        <p class="text-sm text-slate-300">Tu nombre ya aparece en la sala. Espera a que el anfitrión inicie la partida.</p>
+      </div>
+
+      <!-- Subvista Responder -->
+      <div id="p-sub-answering" class="hidden space-y-3">
+        <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/90 px-4 py-2.5">
+          <span id="p-q-badge" class="text-xs font-extrabold text-indigo-300">Pregunta 1/15</span>
+          <span class="font-display text-base font-black text-amber-300">⏱️ <span id="p-timer-text">15</span>s</span>
+        </div>
+
+        <p id="p-q-prompt" class="rounded-2xl border border-white/10 bg-slate-900/80 p-3.5 text-center text-sm font-bold text-slate-100"></p>
+
+        <div id="p-options-grid" class="grid grid-cols-1 gap-3 sm:grid-cols-2"></div>
+      </div>
+
+      <!-- Subvista Enviado -->
+      <div id="p-sub-submitted" class="hidden rounded-3xl border border-white/15 bg-slate-900/95 p-8 text-center space-y-3 shadow-2xl">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/20 text-3xl">⏳</div>
+        <h3 class="font-display text-xl font-black text-white">¡Respuesta registrada!</h3>
+        <p id="p-speed-note" class="text-xs font-bold text-amber-300"></p>
+        <p class="text-xs text-slate-400">Esperando que termine el tiempo de los demás...</p>
+      </div>
+
+      <!-- Subvista Feedback Ronda -->
+      <div id="p-sub-feedback" class="hidden rounded-3xl border border-white/15 bg-slate-900/95 p-7 text-center space-y-4 shadow-2xl">
+        <div id="p-fb-badge" class="mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl font-black"></div>
+        <h3 id="p-fb-title" class="font-display text-2xl font-black text-white"></h3>
+        <div id="p-fb-pts" class="inline-block rounded-2xl bg-white/10 px-4 py-2 font-display text-lg font-black text-amber-300"></div>
+        <p id="p-fb-rank" class="text-sm font-bold text-indigo-200"></p>
+        <p id="p-fb-exp" class="rounded-2xl border border-white/10 bg-slate-950/85 p-3.5 text-left text-xs text-slate-300 leading-relaxed"></p>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 6: PODIO OLÍMPICO FINAL                                         -->
+    <!-- ===================================================================== -->
+    <section id="view-podium" class="hidden animate-pop space-y-6">
+      <div class="rounded-3xl border border-white/15 bg-gradient-to-b from-indigo-950/90 via-slate-900/95 to-slate-950 p-6 sm:p-10 text-center shadow-2xl space-y-8">
+        <div class="space-y-2">
+          <span class="inline-block rounded-full border border-amber-400/40 bg-amber-400/20 px-4 py-1 text-xs font-extrabold uppercase tracking-widest text-amber-300">
+            Resultados Finales
+          </span>
+          <h2 class="font-display text-3xl sm:text-5xl font-black text-white">🏆 Podio de Ganadores</h2>
+        </div>
+
+        <div id="podium-pedestals" class="mx-auto grid max-w-3xl grid-cols-3 items-end gap-3 sm:gap-6 pt-4"></div>
+
+        <div class="mx-auto max-w-2xl space-y-2.5 text-left">
+          <h3 class="font-display text-sm font-extrabold uppercase tracking-wider text-slate-400">Tabla General</h3>
+          <div id="podium-full-list" class="space-y-2"></div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <button
+            id="btn-podium-replay"
+            type="button"
+            class="k-btn-3d rounded-2xl bg-emerald-500 px-6 py-3.5 font-display text-sm sm:text-base font-black text-slate-950 cursor-pointer"
+          >
+            🔄 Nueva Partida
+          </button>
+          <button
+            id="btn-podium-csv"
+            type="button"
+            class="rounded-2xl border border-white/15 bg-white/10 px-6 py-3.5 font-display text-sm sm:text-base font-bold text-white hover:bg-white/15 cursor-pointer"
+          >
+            📥 Descargar Resultados CSV
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VISTA 7: EDITOR Y REUTILIZACIÓN                                       -->
+    <!-- ===================================================================== -->
+    <section id="view-reuse" class="hidden animate-pop space-y-6">
+      <div class="rounded-3xl border border-white/15 bg-slate-900/95 p-6 sm:p-8 shadow-2xl space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-300">Reutilizar en Otras Asignaturas</span>
+            <h2 class="font-display text-2xl sm:text-3xl font-black text-white">Editor e Importador de Preguntas</h2>
+            <p class="text-xs sm:text-sm text-slate-400">Modifica el cuestionario actual, exporta una copia o importa tus propias preguntas.</p>
+          </div>
+          <button
+            id="btn-editor-back"
+            type="button"
+            class="rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-white/15 cursor-pointer"
+          >
+            ← Volver a Inicio
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-end">
+          <div class="md:col-span-6">
+            <label for="input-quiz-title" class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Nombre del Cuestionario</label>
+            <input
+              id="input-quiz-title"
+              type="text"
+              value="Reto Motivacional: El Caso de Mateo"
+              class="w-full rounded-xl border border-white/15 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:border-amber-400 focus:outline-none"
+            />
+          </div>
+          <div class="flex flex-wrap gap-2 md:col-span-6 md:justify-end">
+            <button id="btn-editor-reset" type="button" class="rounded-xl border border-indigo-400/30 bg-indigo-500/15 px-3.5 py-2.5 text-xs font-bold text-indigo-200 hover:bg-indigo-500/25 cursor-pointer">
+              Restaurar Caso Mateo (15)
+            </button>
+            <button id="btn-editor-export" type="button" class="rounded-xl border border-white/15 bg-white/10 px-3.5 py-2.5 text-xs font-bold text-white hover:bg-white/15 cursor-pointer">
+              Exportar JSON
+            </button>
+            <button id="btn-editor-launch" type="button" class="rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-black text-slate-950 hover:bg-emerald-400 cursor-pointer">
+              🚀 Crear Sala con este Quiz
+            </button>
+          </div>
+        </div>
+
+        <!-- Importar JSON / CSV -->
+        <div class="rounded-2xl border border-white/10 bg-slate-950/75 p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-300">Importar desde JSON o CSV</span>
+            <label class="rounded-lg bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/15 cursor-pointer">
+              📂 Subir .json / .csv
+              <input id="file-import-input" type="file" accept=".json,.csv,.txt" class="hidden" />
+            </label>
+          </div>
+          <textarea
+            id="textarea-import"
+            rows="3"
+            placeholder='Pega aquí un JSON exportado o filas CSV: Tema,Pregunta,OpA,OpB,OpC,OpD,LetraCorrecta,Explicacion'
+            class="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-xs font-mono text-slate-200 placeholder-slate-500 focus:border-emerald-400 focus:outline-none"
+          ></textarea>
+          <div class="flex justify-end">
+            <button id="btn-parse-import" type="button" class="rounded-xl bg-indigo-500 px-4 py-2 text-xs font-extrabold text-white hover:bg-indigo-400 cursor-pointer">
+              Cargar Preguntas
+            </button>
+          </div>
+        </div>
+
+        <!-- Lista de Preguntas -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-display text-base font-black text-white">Preguntas (<span id="editor-total-count">15</span>)</h3>
+            <button id="btn-editor-add" type="button" class="rounded-xl bg-amber-400 px-3.5 py-2 text-xs font-black text-slate-950 hover:bg-amber-300 cursor-pointer">
+              + Añadir Pregunta
+            </button>
+          </div>
+          <div id="editor-items-list" class="space-y-4"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /**
+     * ============================================================================
+     * 1. GENERADOR DE CÓDIGO QR AUTÓNOMO EN CANVAS (ZERO DEPENDENCIAS EXTERNAS)
+     * ============================================================================
+     * Implementación compacta QR Versión 3/4 (corrección L) para codificar URLs
+     * y PIN de sala instantáneamente en cualquier navegador o entorno local.
+     */
+    const MiniQR = (() => {
+      // Generador QR compacto basado en matriz estándar Reed-Solomon
+      function generateMatrix(text) {
+        const data = unescape(encodeURIComponent(text));
+        const len = data.length;
+        // Selecciona versión 3 (29x29, hasta 53 bytes) o versión 5 (37x37, hasta 106 bytes)
+        const version = len <= 50 ? 3 : 5;
+        const size = version * 4 + 17;
+        const totalDataCodewords = version === 3 ? 55 : 108;
+        const ecCodewords = version === 3 ? 15 : 26;
+
+        // Codificación en modo Byte (0100)
+        const bits = [];
+        const pushBits = (val, n) => {
+          for (let i = n - 1; i >= 0; i--) bits.push((val >> i) & 1);
+        };
+        pushBits(0b0100, 4);
+        pushBits(len, 8);
+        for (let i = 0; i < len; i++) pushBits(data.charCodeAt(i), 8);
+        pushBits(0, Math.min(4, totalDataCodewords * 8 - bits.length));
+        while (bits.length % 8 !== 0) bits.push(0);
+
+        const codewords = [];
+        for (let i = 0; i < bits.length; i += 8) {
+          let b = 0;
+          for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+          codewords.push(b);
+        }
+        const pads = [0xec, 0x11];
+        let pIdx = 0;
+        while (codewords.length < totalDataCodewords) {
+          codewords.push(pads[pIdx % 2]);
+          pIdx++;
+        }
+
+        // Aritmética GF(256) para Reed-Solomon
+        const exp = new Uint8Array(512);
+        const log = new Uint8Array(256);
+        let x = 1;
+        for (let i = 0; i < 255; i++) {
+          exp[i] = x;
+          log[x] = i;
+          x <<= 1;
+          if (x & 0x100) x ^= 0x11d;
+        }
+        for (let i = 255; i < 512; i++) exp[i] = exp[i - 255];
+        const gfMul = (a, b) => (a === 0 || b === 0 ? 0 : exp[log[a] + log[b]]);
+
+        let gen = [1];
+        for (let i = 0; i < ecCodewords; i++) {
+          const next = new Array(gen.length + 1).fill(0);
+          for (let j = 0; j < gen.length; j++) {
+            next[j] ^= gen[j];
+            next[j + 1] ^= gfMul(gen[j], exp[i]);
+          }
+          gen = next;
+        }
+
+        const rem = new Array(ecCodewords).fill(0);
+        for (let i = 0; i < codewords.length; i++) {
+          const factor = codewords[i] ^ rem[0];
+          rem.shift();
+          rem.push(0);
+          for (let j = 0; j < ecCodewords; j++) {
+            rem[j] ^= gfMul(gen[j + 1], factor);
+          }
+        }
+
+        const allBytes = codewords.concat(rem);
+        const allBits = [];
+        allBytes.forEach((b) => pushBits(b, 8));
+
+        // Inicializa matriz
+        const mat = Array.from({ length: size }, () => new Array(size).fill(null));
+        const reserved = Array.from({ length: size }, () => new Array(size).fill(false));
+
+        const placeFinder = (r, c) => {
+          for (let dr = -1; dr <= 7; dr++) {
+            for (let dc = -1; dc <= 7; dc++) {
+              const nr = r + dr, nc = c + dc;
+              if (nr < 0 || nr >= size || nc < 0 || nc >= size) continue;
+              const on =
+                dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6 &&
+                (dr === 0 || dr === 6 || dc === 0 || dc === 6 || (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4));
+              mat[nr][nc] = on ? 1 : 0;
+              reserved[nr][nc] = true;
+            }
+          }
+        };
+
+        placeFinder(0, 0);
+        placeFinder(0, size - 7);
+        placeFinder(size - 7, 0);
+
+        // Patrón de alineamiento
+        const alignCenter = version === 3 ? 22 : 30;
+        for (let dr = -2; dr <= 2; dr++) {
+          for (let dc = -2; dc <= 2; dc++) {
+            const nr = alignCenter + dr, nc = alignCenter + dc;
+            const on = Math.abs(dr) === 2 || Math.abs(dc) === 2 || (dr === 0 && dc === 0);
+            mat[nr][nc] = on ? 1 : 0;
+            reserved[nr][nc] = true;
+          }
+        }
+
+        // Líneas de temporización
+        for (let i = 8; i < size - 8; i++) {
+          if (!reserved[6][i]) {
+            mat[6][i] = i % 2 === 0 ? 1 : 0;
+            reserved[6][i] = true;
+          }
+          if (!reserved[i][6]) {
+            mat[i][6] = i % 2 === 0 ? 1 : 0;
+            reserved[i][6] = true;
+          }
+        }
+
+        // Reserva área de formato
+        for (let i = 0; i < 9; i++) {
+          if (i !== 6) {
+            reserved[8][i] = true;
+            reserved[i][8] = true;
+          }
+        }
+        for (let i = 0; i < 8; i++) {
+          reserved[8][size - 1 - i] = true;
+          reserved[size - 1 - i][8] = true;
+        }
+        mat[size - 8][8] = 1;
+        reserved[size - 8][8] = true;
+
+        // Coloca bits de datos en zigzag con máscara 0 ((r + c) % 2 === 0)
+        let bitIdx = 0;
+        let up = true;
+        for (let col = size - 1; col > 0; col -= 2) {
+          if (col === 6) col--;
+          for (let step = 0; step < size; step++) {
+            const row = up ? size - 1 - step : step;
+            for (let d = 0; d < 2; d++) {
+              const c = col - d;
+              if (!reserved[row][c]) {
+                const rawBit = bitIdx < allBits.length ? allBits[bitIdx++] : 0;
+                const masked = (row + c) % 2 === 0 ? rawBit ^ 1 : rawBit;
+                mat[row][c] = masked;
+              }
+            }
+          }
+          up = !up;
+        }
+
+        // Información de formato para Nivel L + Máscara 0: 111011111000100
+        const fmt = [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0];
+        const coordsA = [
+          [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 7], [8, 8],
+          [7, 8], [5, 8], [4, 8], [3, 8], [2, 8], [1, 8], [0, 8]
+        ];
+        const coordsB = [
+          [size - 1, 8], [size - 2, 8], [size - 3, 8], [size - 4, 8],
+          [size - 5, 8], [size - 6, 8], [size - 7, 8], [8, size - 8],
+          [8, size - 7], [8, size - 6], [8, size - 5], [8, size - 4],
+          [8, size - 3], [8, size - 2], [8, size - 1]
+        ];
+        for (let i = 0; i < 15; i++) {
+          mat[coordsA[i][0]][coordsA[i][1]] = fmt[i];
+          mat[coordsB[i][0]][coordsB[i][1]] = fmt[i];
+        }
+
+        return mat;
+      }
+
+      function drawToCanvas(canvas, text) {
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const mat = generateMatrix(text);
+        const n = mat.length;
+        const quiet = 2;
+        const total = n + quiet * 2;
+        const scale = Math.floor(canvas.width / total);
+        const offset = Math.floor((canvas.width - n * scale) / 2);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#0f172a";
+        for (let r = 0; r < n; r++) {
+          for (let c = 0; c < n; c++) {
+            if (mat[r][c] === 1) {
+              ctx.fillRect(offset + c * scale, offset + r * scale, scale, scale);
+            }
+          }
+        }
+      }
+
+      return { drawToCanvas };
+    })();
+
+    /**
+     * ============================================================================
+     * 2. LAS 15 PREGUNTAS EXACTAS DEL GUION DEFINITIVO (UAFAM - GRUPO 4)
+     * ============================================================================
+     */
+    const DEFAULT_QUESTIONS = [
+      {
+        topic: "Apertura / Contexto",
+        question: "¿Qué contraste principal presenta Mateo en el liceo público rural?",
+        options: [
+          "En clases teóricas evita la pizarra y no entrega tareas, pero en informática resuelve problemas técnicos con rapidez y entusiasmo",
+          "En clases teóricas participa con entusiasmo en la pizarra, pero en informática se bloquea y huye",
+          "No entrega tareas en ninguna asignatura y rechaza ayudar al profesor de informática",
+          "Tiene excelente rendimiento en exámenes escritos pero evita tocar computadoras"
+        ],
+        correctIndex: 0,
+        explanation: "Mateo (15 años) muestra dos caras opuestas: en clases teóricas evita la pizarra y no entrega tareas, mientras en informática resuelve problemas técnicos con rapidez y ganas."
+      },
+      {
+        topic: "Analista 1 · Hechos vs. Juicios",
+        question: "Según el panel, ¿por qué las etiquetas 'perezoso' y 'rebelde' del consejo de profesores son incorrectas?",
+        options: [
+          "Porque Mateo tiene autorización médica para no entregar tareas escritas",
+          "Son juicios o interpretaciones que no resisten la comparación con los hechos observables de su conducta",
+          "Porque la pereza solo ocurre en estudiantes de zonas urbanas",
+          "Porque ser rebelde significa siempre sacar buenas notas en informática"
+        ],
+        correctIndex: 1,
+        explanation: "Los hechos son lo observable (no entrega tareas, evita la pizarra, rinde en informática); 'perezoso' y 'rebelde' son juicios que contradicen su rapidez técnica y su temblor."
+      },
+      {
+        topic: "Analista 1 · Enfoque del Análisis",
+        question: "Si la conducta de Mateo cambia drásticamente según la materia, ¿dónde debe centrarse el análisis psicológico?",
+        options: [
+          "Únicamente en aplicar castigos disciplinarios más estrictos",
+          "Solo en la personalidad fija del estudiante",
+          "En las condiciones de la situación y el entorno educativo, no solo en el estudiante",
+          "En cambiar a Mateo de liceo inmediatamente"
+        ],
+        correctIndex: 2,
+        explanation: "Como su conducta varía según la situación, el análisis debe mirar las condiciones del entorno educativo y no etiquetar solo al alumno."
+      },
+      {
+        topic: "Analista 2 · McGregor (Teoría X)",
+        question: "¿Qué asume la Teoría X de McGregor, reflejada en la postura del consejo de profesores?",
+        options: [
+          "Que el estudiante busca responsabilidades de forma natural cuando confían en él",
+          "Que la persona rechaza el trabajo, necesita control y solo responde ante la presión o el castigo",
+          "Que el aprendizaje mejora eliminando toda evaluación pública",
+          "Que la motivación depende exclusivamente de recompensas económicas"
+        ],
+        correctIndex: 1,
+        explanation: "La Teoría X parte de que la persona rechaza el esfuerzo, requiere vigilancia y solo reacciona bajo control o sanción, tal como pide el consejo."
+      },
+      {
+        topic: "Analista 2 · McGregor (Teoría Y)",
+        question: "¿Cómo se manifiesta la Teoría Y de McGregor en la clase de informática de Mateo?",
+        options: [
+          "El profesor lo vigila constantemente bajo amenaza de sanción",
+          "Cuando recibe confianza y una responsabilidad concreta, Mateo se dirige a sí mismo y responde con compromiso",
+          "Mateo evita cualquier tarea técnica para no equivocarse",
+          "El docente hace el trabajo por él para evitar conflictos"
+        ],
+        correctIndex: 1,
+        explanation: "La Teoría Y sostiene que las personas pueden comprometerse y autodirigirse cuando las condiciones y la confianza se lo permiten, como ocurre en informática."
+      },
+      {
+        topic: "Analista 2 · Efecto de Expectativas",
+        question: "¿Qué ocurre cuando un docente espera pereza de Mateo y aumenta el control y la exigencia pública?",
+        options: [
+          "Mateo supera su timidez de inmediato y lidera la clase teórica",
+          "Mateo percibe la desconfianza, se desentiende más y termina confirmando la expectativa inicial del docente",
+          "El grupo completo mejora su rendimiento académico",
+          "La relación entre docente y alumno se vuelve más cercana"
+        ],
+        correctIndex: 1,
+        explanation: "Cuando el docente espera pereza y controla más en público, el estudiante percibe esa desconfianza, se aleja y la expectativa termina cumpliéndose."
+      },
+      {
+        topic: "Analista 2 · Intervención Docente",
+        question: "¿Cuál de estos es uno de los 4 pasos propuestos para intervenir con los docentes?",
+        options: [
+          "Aumentar las preguntas sorpresa en la pizarra frente a todo el curso",
+          "Conversar con el profesor de informática para identificar qué condiciones producen la versión competente de Mateo",
+          "Mantener los castigos hasta que Mateo pida disculpas al consejo",
+          "Comprar equipos costosos antes de hacer cambios pedagógicos"
+        ],
+        correctIndex: 1,
+        explanation: "Uno de los 4 pasos sin costo es dialogar con el docente de informática, quien conoce la versión competente de Mateo y las condiciones que la generan."
+      },
+      {
+        topic: "Analista 3 · McClelland",
+        question: "Según la Teoría de las Necesidades de David McClelland, ¿qué necesidad predomina en Mateo?",
+        options: [
+          "La necesidad de logro (hacer bien las cosas ante retos manejables)",
+          "La necesidad de poder autoritario sobre sus docentes",
+          "La evitación total de cualquier tipo de reto",
+          "La necesidad fisiológica de descanso"
+        ],
+        correctIndex: 0,
+        explanation: "Todo indica que en Mateo predomina la necesidad de logro (a confirmar conversando con él), impulsada por el deseo de hacer bien las cosas."
+      },
+      {
+        topic: "Analista 3 · Condiciones del Logro",
+        question: "¿Cuáles son las tres condiciones que activan la necesidad de logro según el Analista 3?",
+        options: [
+          "Tareas imposibles, trabajo aislado y notas al final del semestre",
+          "Dificultad moderada, resultado que dependa de su propio esfuerzo y retroalimentación concreta inmediata",
+          "Memorización mecánica, competencia pública y castigo al error",
+          "Tareas muy fáciles, ayuda constante y calificación grupal"
+        ],
+        correctIndex: 1,
+        explanation: "El logro se enciende con dificultad moderada, un resultado dependiente del propio esfuerzo y retroalimentación concreta para saber enseguida cómo le fue."
+      },
+      {
+        topic: "Analista 3 · Cable vs. Pizarra",
+        question: "¿Por qué conectar un cable en informática sí activa la motivación de Mateo frente a la pizarra?",
+        options: [
+          "Porque en informática nadie evalúa si el equipo enciende o no",
+          "Porque el reto es manejable, el resultado es suyo y el propio equipo le da retroalimentación al instante",
+          "Porque en la pizarra recibe elogios privados de sus compañeros",
+          "Porque conectar cables no requiere ningún esfuerzo cognitivo"
+        ],
+        correctIndex: 1,
+        explanation: "Al conectar un cable y ver funcionar el equipo, Mateo comprueba de inmediato un resultado propio; en la pizarra repite de memoria y la corrección llega como error público."
+      },
+      {
+        topic: "Analista 4 · Schachter y Singer",
+        question: "Según la teoría bifactorial de Schachter y Singer, ¿de qué dos componentes nace una emoción?",
+        options: [
+          "De la herencia genética y del castigo escolar",
+          "De una activación fisiológica y de la interpretación cognitiva que la persona hace según la situación",
+          "De la memoria a largo plazo y la calificación obtenida",
+          "Únicamente de los gestos faciales de los compañeros"
+        ],
+        correctIndex: 1,
+        explanation: "La teoría bifactorial plantea que la emoción resulta de combinar activación fisiológica (pulso, sudor, temblor) con la interpretación cognitiva de la situación."
+      },
+      {
+        topic: "Analista 4 · Huida y Ética",
+        question: "¿Por qué Mateo dice 'no sé nada' frente a la pizarra y qué precisión ética hace el panel sobre esto?",
+        options: [
+          "Escapar reduce el malestar al instante; además, no puede diagnosticarse un trastorno de ansiedad sin valoración profesional",
+          "Lo dice para desafiar al maestro y confirma un diagnóstico clínico de fobia social",
+          "Decir 'no sé nada' aumenta su sudoración y demuestra falta de capacidad intelectual",
+          "El panel diagnostica ansiedad generalizada con los datos del caso"
+        ],
+        correctIndex: 0,
+        explanation: "Huir alivia el malestar de inmediato y refuerza la evitación; éticamente el panel aclara que no se puede afirmar un trastorno de ansiedad sin valoración profesional."
+      },
+      {
+        topic: "Analista 4 · Reetiquetado",
+        question: "¿En qué consiste la técnica del 'reetiquetado' propuesta por el Analista 4 para ayudar a Mateo?",
+        options: [
+          "Cambiar su nombre en la lista de asistencia para evitar llamarlo",
+          "Ayudarlo a interpretar el temblor y el sudor como preparación normal del cuerpo ante un reto y no como señal de fracaso",
+          "Pedirle que oculte sus manos debajo del pupitre",
+          "Evitar que vuelva a sentir activación física en cualquier clase"
+        ],
+        correctIndex: 1,
+        explanation: "El reetiquetado busca que Mateo lea su activación física como preparación ante una exigencia (similar al entusiasmo en informática) y no como fracaso."
+      },
+      {
+        topic: "Propuesta en Dos Vías",
+        question: "En la vía de intervención directa con Mateo, ¿cuál es la secuencia correcta de exposición gradual?",
+        options: [
+          "Primero pizarra frente a todos, luego grupo pequeño, después parejas y al final escrito",
+          "Primero respuestas escritas, luego en parejas, después en grupo pequeño y finalmente ante toda la clase",
+          "Solo exposición oral frente al consejo de profesores desde el primer día",
+          "Eliminar para siempre cualquier participación oral en el liceo"
+        ],
+        correctIndex: 1,
+        explanation: "La exposición gradual avanza paso a paso: respuestas escritas -> en parejas -> en grupo pequeño -> frente a toda la clase."
+      },
+      {
+        topic: "Seguimiento y Cierre",
+        question: "¿Cómo se propone evaluar si la intervención funciona sin recurrir de nuevo al castigo?",
+        options: [
+          "Con un examen sorpresa semanal frente a todo el liceo",
+          "Con un registro sencillo de tareas entregadas, participación y reacción en pizarra, revisado periódicamente en equipo",
+          "Suspendiendo las clases de informática si falla en teoría",
+          "Observando únicamente si Mateo deja de sudar en un día"
+        ],
+        correctIndex: 1,
+        explanation: "Se propone un registro sencillo (tareas entregadas, participación y reacción en pizarra, junto con menos etiquetas docentes) revisado en equipo para ajustar la estrategia."
+      }
+    ];
+
+    const AVATARS = ["🎓", "🧠", "💻", "🚀", "🦊", "🦁", "🦉", "⚡", "🌟", "🎯", "🔥", "📚"];
+    const OPT_STYLES = [
+      { bg: "bg-kRed", symbol: "▲" },
+      { bg: "bg-kBlue", symbol: "◆" },
+      { bg: "bg-kAmber", symbol: "●" },
+      { bg: "bg-kGreen", symbol: "■" }
+    ];
+
+    /**
+     * ============================================================================
+     * 3. ESTADO GLOBAL Y MOTOR SIN BLOQUEOS (LOCAL + PEERJS P2P OPCIONAL)
+     * ============================================================================
+     */
+    const state = {
+      mode: null, // 'host' | 'player' | 'single'
+      pin: "",
+      playerId: "",
+      nickname: "",
+      avatar: "🎓",
+      quizTitle: "Reto Motivacional: El Caso de Mateo",
+      questions: JSON.parse(JSON.stringify(DEFAULT_QUESTIONS)),
+      timePerQ: 15,
+      room: null,
+      timerId: null,
+      isPaused: false,
+      timeLeft: 15,
+      qStartedAt: 0,
+      answeredCurrent: false,
+      lastPlayerPhase: "",
+      peer: null,
+      hostConns: {},
+      playerConn: null
+    };
+
+    const bc = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("mateo_kahoot_v3") : null;
+
+    function toast(msg, type = "ok") {
+      const box = document.getElementById("toast-box");
+      const dot = document.getElementById("toast-dot");
+      document.getElementById("toast-msg").textContent = msg;
+      dot.className = `h-2.5 w-2.5 shrink-0 rounded-full ${
+        type === "err" ? "bg-rose-400" : type === "warn" ? "bg-amber-400" : "bg-emerald-400"
+      }`;
+      box.classList.remove("hidden");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => box.classList.add("hidden"), 3200);
+    }
+
+    function showView(id) {
+      [
+        "view-home",
+        "view-player-join",
+        "view-host-lobby",
+        "view-host-game",
+        "view-player-game",
+        "view-podium",
+        "view-reuse"
+      ].forEach((v) => {
+        const el = document.getElementById(v);
+        if (el) el.classList.toggle("hidden", v !== id);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function getCleanBaseUrl() {
+      return window.location.href.split("?")[0].split("#")[0];
+    }
+
+    /**
+     * Sincronización de sala (BroadcastChannel + LocalStorage + PeerJS P2P)
+     */
+    function broadcastRoom(room) {
+      state.room = room;
+      try {
+        localStorage.setItem(`mateo_v3_${room.pin}`, JSON.stringify(room));
+      } catch (e) {}
+      if (bc) {
+        try {
+          bc.postMessage({ type: "SYNC_ROOM", pin: room.pin, room });
+        } catch (e) {}
+      }
+      // Envía a clientes conectados vía WebRTC/PeerJS si existen
+      Object.values(state.hostConns).forEach((conn) => {
+        if (conn && conn.open) {
+          try {
+            conn.send({ type: "SYNC_ROOM", room });
+          } catch (e) {}
+        }
+      });
+    }
+
+    function initHostPeerNonBlocking(pin) {
+      try {
+        if (typeof Peer === "undefined") return;
+        if (state.peer) {
+          try { state.peer.destroy(); } catch (e) {}
+        }
+        const peerId = `uafam-mateo-${pin}`;
+        const peer = new Peer(peerId);
+        state.peer = peer;
+
+        peer.on("open", () => {
+          document.getElementById("net-label").textContent = "QR + P2P Activo";
+        });
+
+        peer.on("connection", (conn) => {
+          state.hostConns[conn.peer] = conn;
+          conn.on("open", () => {
+            if (state.room) conn.send({ type: "SYNC_ROOM", room: state.room });
+          });
+          conn.on("data", (msg) => {
+            if (!msg || !state.room) return;
+            if (msg.type === "PLAYER_JOIN" && msg.player) {
+              state.room.players[msg.player.id] = msg.player;
+              broadcastRoom(state.room);
+              renderHostLobbyPlayers();
+              toast(`${msg.player.avatar} ${msg.player.nickname} se unió desde celular`);
+            }
+            if (msg.type === "PLAYER_ANSWER") {
+              registerAnswerOnHost(msg.qIndex, msg.playerId, msg.payload);
+            }
+          });
+          conn.on("close", () => {
+            delete state.hostConns[conn.peer];
+          });
+        });
+
+        peer.on("error", () => {
+          // Falla silenciosamente sin interrumpir el modo local
+        });
+      } catch (e) {}
+    }
+
+    /**
+     * ============================================================================
+     * 4. LÓGICA DEL ANFITRIÓN (CREAR SALA AL INSTANTE + QR + JUGADORES DEMO)
+     * ============================================================================
+     */
+    function startHostLobby() {
+      clearInterval(state.timerId);
+      const pin = String(Math.floor(100000 + Math.random() * 900000));
+      const timePerQ = parseInt(document.getElementById("select-time-per-q").value, 10) || 15;
+
+      state.mode = "host";
+      state.pin = pin;
+      state.timePerQ = timePerQ;
+      state.hostConns = {};
+
+      const room = {
+        pin,
+        title: state.quizTitle,
+        status: "lobby",
+        qIndex: 0,
+        timePerQ,
+        qStartedAt: 0,
+        questions: state.questions,
+        players: {},
+        answers: {}
+      };
+
+      broadcastRoom(room);
+
+      // Actualiza UI del Lobby al instante
+      document.getElementById("lobby-pin-text").textContent = pin;
+      document.getElementById("lobby-meta-q").textContent = `${state.questions.length} preguntas`;
+      document.getElementById("lobby-meta-t").textContent = `${timePerQ}s`;
+
+      const joinUrl = `${getCleanBaseUrl()}?pin=${pin}`;
+      document.getElementById("lobby-url-box").textContent = joinUrl;
+
+      // Dibuja el Código QR real en el Canvas inmediatamente
+      const qrCanvas = document.getElementById("qr-canvas");
+      MiniQR.drawToCanvas(qrCanvas, joinUrl);
+
+      renderHostLobbyPlayers();
+      showView("view-host-lobby");
+      toast(`Sala ${pin} creada al instante.`);
+
+      // Inicia canal P2P en segundo plano (sin bloquear nada)
+      initHostPeerNonBlocking(pin);
+    }
+
+    function addDemoPlayersToLobby() {
+      if (!state.room) return;
+      const samples = [
+        { nickname: "Ana Francisca", avatar: "🎓", isBot: true },
+        { nickname: "Elizabeth T.", avatar: "🧠", isBot: true },
+        { nickname: "Francisco A.", avatar: "💻", isBot: true },
+        { nickname: "Soribel S.", avatar: "🚀", isBot: true }
+      ];
+      samples.forEach((s, i) => {
+        const id = `demo_${Date.now()}_${i}`;
+        state.room.players[id] = {
+          id,
+          nickname: s.nickname,
+          avatar: s.avatar,
+          isBot: true,
+          score: 0,
+          correctCount: 0,
+          streak: 0,
+          totalMs: 0,
+          lastEarned: 0,
+          lastCorrect: false
+        };
+      });
+      broadcastRoom(state.room);
+      renderHostLobbyPlayers();
+      toast("4 jugadores demo añadidos para simular la partida.");
+    }
+
+    function renderHostLobbyPlayers() {
+      if (!state.room) return;
+      const players = Object.values(state.room.players || {});
+      document.getElementById("lobby-count-badge").textContent = String(players.length);
+      const container = document.getElementById("lobby-players-container");
+
+      if (players.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-slate-400">
+            Escanea el QR con tu celular, abre otra pestaña con el PIN <strong class="text-white">${state.room.pin}</strong> o pulsa <strong>+4 Jugadores Demo</strong>.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = players
+        .map(
+          (p) => `
+          <div class="animate-pop flex items-center gap-2.5 rounded-2xl border border-white/15 bg-slate-950/90 px-3.5 py-3 shadow">
+            <span class="text-2xl">${p.avatar || "🎓"}</span>
+            <span class="truncate font-display text-sm font-extrabold text-white">${escapeHtml(p.nickname)}</span>
+          </div>
+        `
+        )
+        .join("");
+    }
+
+    function startSingleScreenMode() {
+      clearInterval(state.timerId);
+      const pin = String(Math.floor(100000 + Math.random() * 900000));
+      const timePerQ = parseInt(document.getElementById("select-time-per-q").value, 10) || 15;
+
+      state.mode = "single";
+      state.pin = pin;
+      state.timePerQ = timePerQ;
+      state.room = {
+        pin,
+        title: state.quizTitle,
+        status: "question",
+        qIndex: 0,
+        timePerQ,
+        qStartedAt: Date.now(),
+        questions: state.questions,
+        players: {},
+        answers: {}
+      };
+
+      hostOpenQuestion(0);
+    }
+
+    function hostOpenQuestion(qIndex) {
+      clearInterval(state.timerId);
+      state.isPaused = false;
+      document.getElementById("btn-host-pause").textContent = "⏸ Pausar";
+
+      const room = state.room;
+      const q = room.questions[qIndex];
+      if (!q) return;
+
+      room.status = "question";
+      room.qIndex = qIndex;
+      room.qStartedAt = Date.now();
+      room.answers[qIndex] = room.answers[qIndex] || {};
+
+      showView("view-host-game");
+      document.getElementById("stage-host-question").classList.remove("hidden");
+      document.getElementById("stage-host-results").classList.add("hidden");
+
+      document.getElementById("hud-host-pin").textContent = room.pin;
+      document.getElementById("hud-host-qnum").textContent = `Pregunta ${qIndex + 1} / ${room.questions.length}`;
+      document.getElementById("hud-host-topic").textContent = q.topic;
+      document.getElementById("host-q-text").textContent = q.question;
+
+      const totalPlayers = Object.keys(room.players || {}).length;
+      document.getElementById("hud-answers-box").classList.toggle("hidden", state.mode === "single");
+      document.getElementById("hud-host-answers").textContent = `0 / ${totalPlayers}`;
+
+      // Renderiza las 4 opciones estilo Kahoot
+      const optsContainer = document.getElementById("host-options-container");
+      optsContainer.innerHTML = q.options
+        .map((opt, idx) => {
+          const st = OPT_STYLES[idx];
+          return `
+            <button
+              type="button"
+              data-host-opt="${idx}"
+              class="k-btn-3d ${st.bg} flex min-h-[5.5rem] items-center gap-4 rounded-2xl p-5 text-left text-white cursor-pointer"
+            >
+              <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-black/25 font-display text-2xl font-black">
+                ${st.symbol}
+              </span>
+              <span class="text-base sm:text-xl font-extrabold leading-snug">${escapeHtml(opt)}</span>
+            </button>
+          `;
+        })
+        .join("");
+
+      // En modo 1 pantalla, hacer clic sobre cualquier tarjeta revela la respuesta al instante
+      optsContainer.querySelectorAll("button[data-host-opt]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (state.mode === "single") {
+            const chosen = parseInt(btn.dataset.hostOpt, 10);
+            room.answers[qIndex]["aula_grupo"] = { optionIndex: chosen, responseMs: 1500 };
+            hostCloseQuestion();
+          }
+        });
+      });
+
+      // Simula respuestas progresivas si hay jugadores demo añadidos
+      Object.values(room.players || {}).forEach((p) => {
+        if (p.isBot) {
+          const delay = 1800 + Math.random() * Math.max(2500, (room.timePerQ - 4) * 1000);
+          setTimeout(() => {
+            if (state.room && state.room.status === "question" && state.room.qIndex === qIndex) {
+              const isRight = Math.random() < 0.72;
+              const optIdx = isRight ? q.correctIndex : (q.correctIndex + 1 + Math.floor(Math.random() * 3)) % 4;
+              registerAnswerOnHost(qIndex, p.id, { optionIndex: optIdx, responseMs: Math.round(delay) });
+            }
+          }, delay);
+        }
+      });
+
+      broadcastRoom(room);
+
+      state.timeLeft = room.timePerQ;
+      updateHostTimerVisual(state.timeLeft);
+
+      state.timerId = setInterval(() => {
+        if (state.isPaused) return;
+        state.timeLeft -= 1;
+        updateHostTimerVisual(state.timeLeft);
+        if (state.timeLeft <= 0) {
+          hostCloseQuestion();
+        }
+      }, 1000);
+    }
+
+    function updateHostTimerVisual(sec) {
+      const el = document.getElementById("hud-host-timer");
+      el.textContent = String(Math.max(0, sec));
+      if (sec <= 5 && sec > 0) {
+        el.classList.add("timer-urgent", "border-rose-500", "text-rose-400");
+        el.classList.remove("border-amber-400", "text-amber-300");
+      } else {
+        el.classList.remove("timer-urgent", "border-rose-500", "text-rose-400");
+        el.classList.add("border-amber-400", "text-amber-300");
+      }
+    }
+
+    function registerAnswerOnHost(qIndex, playerId, payload) {
+      const room = state.room;
+      if (!room || room.status !== "question" || room.qIndex !== qIndex) return;
+      room.answers[qIndex] = room.answers[qIndex] || {};
+      if (room.answers[qIndex][playerId]) return;
+
+      room.answers[qIndex][playerId] = payload;
+      const answeredCount = Object.keys(room.answers[qIndex]).length;
+      const totalPlayers = Object.keys(room.players || {}).length;
+      document.getElementById("hud-host-answers").textContent = `${answeredCount} / ${totalPlayers}`;
+
+      if (totalPlayers > 0 && answeredCount >= totalPlayers) {
+        hostCloseQuestion();
+      }
+    }
+
+    function hostCloseQuestion() {
+      clearInterval(state.timerId);
+      const room = state.room;
+      if (!room || room.status === "round_results") return;
+
+      const qIdx = room.qIndex;
+      const q = room.questions[qIdx];
+      const maxMs = room.timePerQ * 1000;
+      const roundAns = room.answers[qIdx] || {};
+      const counts = [0, 0, 0, 0];
+
+      Object.values(roundAns).forEach((a) => {
+        if (a && a.optionIndex >= 0 && a.optionIndex < 4) counts[a.optionIndex] += 1;
+      });
+
+      // Calcula puntos estilo Kahoot por rapidez + racha
+      Object.entries(room.players || {}).forEach(([pid, p]) => {
+        const ans = roundAns[pid];
+        if (ans && ans.optionIndex === q.correctIndex) {
+          const elapsed = Math.min(maxMs, Math.max(0, ans.responseMs || maxMs));
+          const speedPoints = Math.round(400 * (1 - elapsed / maxMs));
+          const streak = (p.streak || 0) + 1;
+          const streakBonus = streak >= 2 ? Math.min(300, (streak - 1) * 100) : 0;
+          const earned = 600 + speedPoints + streakBonus;
+
+          p.score = (p.score || 0) + earned;
+          p.correctCount = (p.correctCount || 0) + 1;
+          p.streak = streak;
+          p.totalMs = (p.totalMs || 0) + elapsed;
+          p.lastEarned = earned;
+          p.lastCorrect = true;
+        } else {
+          p.streak = 0;
+          p.lastEarned = 0;
+          p.lastCorrect = false;
+        }
+      });
+
+      room.status = "round_results";
+      broadcastRoom(room);
+
+      // Renderiza resultados en el proyector
+      document.getElementById("stage-host-question").classList.add("hidden");
+      document.getElementById("stage-host-results").classList.remove("hidden");
+
+      const totalVotes = counts.reduce((a, b) => a + b, 0) || 1;
+      document.getElementById("host-results-bars").innerHTML = q.options
+        .map((opt, idx) => {
+          const st = OPT_STYLES[idx];
+          const c = counts[idx];
+          const pct = Math.round((c / totalVotes) * 100);
+          const ok = idx === q.correctIndex;
+          return `
+            <div class="rounded-2xl border p-3.5 ${
+              ok ? "border-emerald-400 bg-emerald-500/15" : "border-white/10 bg-slate-950/75 opacity-75"
+            }">
+              <div class="flex items-center justify-between gap-2 text-sm font-bold">
+                <div class="flex items-center gap-2">
+                  <span class="${st.bg} inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black text-white">${st.symbol}</span>
+                  <span class="text-white">${escapeHtml(opt)}</span>
+                </div>
+                <span class="shrink-0 font-display font-black ${ok ? "text-emerald-300" : "text-slate-300"}">
+                  ${ok ? "✓ Correcta · " : ""}${c} (${pct}%)
+                </span>
+              </div>
+              <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                <div class="${st.bg} h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      document.getElementById("host-results-explanation").textContent = q.explanation;
+
+      const sorted = sortRanking(room.players || {});
+      const top5Box = document.getElementById("host-top5-container");
+      if (sorted.length === 0) {
+        top5Box.innerHTML = `<p class="text-xs text-slate-400">Modo 1 pantalla activo. Pulsa "Siguiente Pregunta" para continuar con el grupo.</p>`;
+      } else {
+        top5Box.innerHTML = sorted
+          .slice(0, 5)
+          .map(
+            (p, i) => `
+            <div class="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/85 px-3.5 py-2.5">
+              <div class="flex items-center gap-2.5">
+                <span class="font-display text-sm font-black text-amber-300">#${i + 1}</span>
+                <span class="text-lg">${p.avatar}</span>
+                <span class="font-bold text-sm text-white">${escapeHtml(p.nickname)}</span>
+                ${p.streak >= 2 ? `<span class="text-xs font-black text-amber-400">🔥${p.streak}</span>` : ""}
+              </div>
+              <span class="font-display text-sm font-black text-emerald-400">${(p.score || 0).toLocaleString("es-DO")} pts</span>
+            </div>
+          `
+          )
+          .join("");
+      }
+
+      const isLast = qIdx >= room.questions.length - 1;
+      document.getElementById("btn-host-next-q").textContent = isLast
+        ? "🏆 Ver Podio Final"
+        : "Siguiente Pregunta →";
+    }
+
+    function hostFinishMatch() {
+      clearInterval(state.timerId);
+      if (state.room) {
+        state.room.status = "podium";
+        broadcastRoom(state.room);
+      }
+      renderPodium(state.room ? state.room.players : {});
+    }
+
+    /**
+     * ============================================================================
+     * 5. LÓGICA DEL JUGADOR (UNIRSE POR PIN O QR EN OTRA PESTAÑA O CELULAR)
+     * ============================================================================
+     */
+    function renderAvatarGrid() {
+      const grid = document.getElementById("avatar-grid");
+      grid.innerHTML = AVATARS.map(
+        (av) => `
+          <button
+            type="button"
+            data-av="${av}"
+            class="av-btn flex h-11 items-center justify-center rounded-xl border text-xl transition cursor-pointer ${
+              av === state.avatar
+                ? "border-amber-400 bg-amber-400/20 scale-105"
+                : "border-white/10 bg-slate-950 hover:bg-white/10"
+            }"
+          >
+            ${av}
+          </button>
+        `
+      ).join("");
+
+      grid.querySelectorAll(".av-btn").forEach((b) => {
+        b.addEventListener("click", () => {
+          state.avatar = b.dataset.av;
+          renderAvatarGrid();
+        });
+      });
+    }
+
+    function joinAsPlayer() {
+      const pin = document.getElementById("join-pin").value.trim();
+      const name = document.getElementById("join-name").value.trim();
+
+      if (!/^\d{6}$/.test(pin)) {
+        toast("Ingresa un PIN válido de 6 dígitos.", "err");
+        return;
+      }
+      if (!name) {
+        toast("Escribe tu nombre o equipo para entrar.", "err");
+        return;
+      }
+
+      const playerId = "plr_" + Math.random().toString(36).substring(2, 9);
+      state.mode = "player";
+      state.pin = pin;
+      state.playerId = playerId;
+      state.nickname = name;
+      state.lastPlayerPhase = "";
+
+      const playerObj = {
+        id: playerId,
+        nickname: name,
+        avatar: state.avatar,
+        score: 0,
+        correctCount: 0,
+        streak: 0,
+        totalMs: 0,
+        lastEarned: 0,
+        lastCorrect: false
+      };
+
+      // 1. Intenta unir en sala local (misma PC / pestañas)
+      try {
+        const raw = localStorage.getItem(`mateo_v3_${pin}`);
+        if (raw) {
+          const localRoom = JSON.parse(raw);
+          localRoom.players[playerId] = playerObj;
+          localStorage.setItem(`mateo_v3_${pin}`, JSON.stringify(localRoom));
+          if (bc) bc.postMessage({ type: "SYNC_ROOM", pin, room: localRoom });
+          state.room = localRoom;
+        }
+      } catch (e) {}
+
+      // 2. Intenta conectar vía PeerJS P2P si viene desde celular externo
+      try {
+        if (typeof Peer !== "undefined") {
+          const p = new Peer();
+          state.peer = p;
+          p.on("open", () => {
+            const conn = p.connect(`uafam-mateo-${pin}`);
+            state.playerConn = conn;
+            conn.on("open", () => {
+              conn.send({ type: "PLAYER_JOIN", player: playerObj });
+            });
+            conn.on("data", (msg) => {
+              if (msg && msg.type === "SYNC_ROOM" && msg.room) {
+                onPlayerRoomSynced(msg.room);
+              }
+            });
+          });
+        }
+      } catch (e) {}
+
+      document.getElementById("p-hud-avatar").textContent = state.avatar;
+      document.getElementById("p-lobby-avatar").textContent = state.avatar;
+      document.getElementById("p-hud-name").textContent = name;
+      document.getElementById("p-hud-pin").textContent = pin;
+      document.getElementById("p-hud-score").textContent = "0";
+
+      showView("view-player-game");
+      showPlayerSub("p-sub-lobby");
+      toast(`¡Conectado a la sala ${pin}!`);
+    }
+
+    function showPlayerSub(id) {
+      ["p-sub-lobby", "p-sub-answering", "p-sub-submitted", "p-sub-feedback"].forEach((s) => {
+        document.getElementById(s).classList.toggle("hidden", s !== id);
+      });
+    }
+
+    function onPlayerRoomSynced(room) {
+      if (state.mode !== "player" || !room || room.pin !== state.pin) return;
+      state.room = room;
+
+      const me = room.players && room.players[state.playerId];
+      if (me) {
+        document.getElementById("p-hud-score").textContent = (me.score || 0).toLocaleString("es-DO");
+        const stPill = document.getElementById("p-hud-streak");
+        if ((me.streak || 0) >= 2) {
+          stPill.classList.remove("hidden");
+          stPill.textContent = `🔥 ${me.streak}`;
+        } else {
+          stPill.classList.add("hidden");
+        }
+      }
+
+      const phaseKey = `${room.status}_${room.qIndex}_${room.qStartedAt}`;
+      if (phaseKey === state.lastPlayerPhase) return;
+      state.lastPlayerPhase = phaseKey;
+
+      clearInterval(state.timerId);
+
+      if (room.status === "lobby") {
+        showPlayerSub("p-sub-lobby");
+      } else if (room.status === "question") {
+        const q = room.questions[room.qIndex];
+        state.answeredCurrent = false;
+        state.qStartedAt = room.qStartedAt || Date.now();
+
+        showPlayerSub("p-sub-answering");
+        document.getElementById("p-q-badge").textContent = `Pregunta ${room.qIndex + 1}/${room.questions.length}`;
+        document.getElementById("p-q-prompt").textContent = q.question;
+
+        const grid = document.getElementById("p-options-grid");
+        grid.innerHTML = q.options
+          .map((opt, idx) => {
+            const st = OPT_STYLES[idx];
+            return `
+              <button
+                type="button"
+                data-p-opt="${idx}"
+                class="k-btn-3d ${st.bg} flex min-h-[5.5rem] items-center gap-3.5 rounded-2xl p-4 text-left text-white cursor-pointer"
+              >
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-black/25 font-display text-2xl font-black">
+                  ${st.symbol}
+                </span>
+                <span class="text-sm font-extrabold leading-snug">${escapeHtml(opt)}</span>
+              </button>
+            `;
+          })
+          .join("");
+
+        grid.querySelectorAll("button[data-p-opt]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (state.answeredCurrent) return;
+            state.answeredCurrent = true;
+            const chosen = parseInt(btn.dataset.pOpt, 10);
+            const elapsedMs = Math.max(150, Date.now() - state.qStartedAt);
+            const payload = { optionIndex: chosen, responseMs: elapsedMs };
+
+            // Envía respuesta por canal local y P2P
+            if (bc) {
+              bc.postMessage({
+                type: "PLAYER_ANSWER",
+                pin: room.pin,
+                qIndex: room.qIndex,
+                playerId: state.playerId,
+                payload
+              });
+            }
+            if (state.playerConn && state.playerConn.open) {
+              state.playerConn.send({
+                type: "PLAYER_ANSWER",
+                qIndex: room.qIndex,
+                playerId: state.playerId,
+                payload
+              });
+            }
+
+            showPlayerSub("p-sub-submitted");
+            document.getElementById("p-speed-note").textContent = `Tiempo de respuesta: ${(elapsedMs / 1000).toFixed(2)}s`;
+          });
+        });
+
+        let left = room.timePerQ;
+        const tEl = document.getElementById("p-timer-text");
+        tEl.textContent = String(left);
+        state.timerId = setInterval(() => {
+          left -= 1;
+          tEl.textContent = String(Math.max(0, left));
+          if (left <= 0) clearInterval(state.timerId);
+        }, 1000);
+      } else if (room.status === "round_results") {
+        const q = room.questions[room.qIndex];
+        const sorted = sortRanking(room.players || {});
+        const myRank = sorted.findIndex((x) => x.id === state.playerId) + 1;
+
+        showPlayerSub("p-sub-feedback");
+        const badge = document.getElementById("p-fb-badge");
+        const title = document.getElementById("p-fb-title");
+        const pts = document.getElementById("p-fb-pts");
+
+        if (me && me.lastCorrect) {
+          badge.textContent = "✓";
+          badge.className = "mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-3xl font-black text-slate-950";
+          title.textContent = "¡Correcto!";
+          pts.textContent = `+${(me.lastEarned || 0).toLocaleString("es-DO")} pts`;
+        } else {
+          badge.textContent = "✕";
+          badge.className = "mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-500 text-3xl font-black text-white";
+          title.textContent = "Sin puntos esta ronda";
+          pts.textContent = "0 pts";
+        }
+
+        document.getElementById("p-fb-rank").textContent =
+          myRank > 0 ? `Posición actual: #${myRank} de ${sorted.length}` : "";
+        document.getElementById("p-fb-exp").textContent = q.explanation;
+      } else if (room.status === "podium") {
+        renderPodium(room.players || {});
+      }
+    }
+
+    /**
+     * ============================================================================
+     * 6. PODIO OLÍMPICO Y EXPORTACIÓN CSV
+     * ============================================================================
+     */
+    function sortRanking(playersObj) {
+      return Object.values(playersObj || {}).sort((a, b) => {
+        if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+        return (a.totalMs || 999999) - (b.totalMs || 999999);
+      });
+    }
+
+    function renderPodium(playersObj) {
+      showView("view-podium");
+      const sorted = sortRanking(playersObj);
+
+      if (typeof confetti === "function") {
+        try { confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } }); } catch (e) {}
+      }
+
+      const makeCol = (p, place, hClass, bgClass, medal) => {
+        if (!p) {
+          return `<div class="rounded-t-2xl border border-white/10 bg-slate-900/40 ${hClass} flex items-center justify-center text-xs text-slate-600">—</div>`;
+        }
+        return `
+          <div class="flex flex-col items-center">
+            <div class="mb-2 text-3xl sm:text-4xl">${p.avatar}</div>
+            <div class="mb-2 max-w-full truncate px-1 font-display text-xs sm:text-base font-black text-white">${escapeHtml(p.nickname)}</div>
+            <div class="w-full rounded-t-2xl ${bgClass} ${hClass} flex flex-col items-center justify-center p-3 text-slate-950 shadow-xl">
+              <div class="text-2xl sm:text-3xl">${medal}</div>
+              <div class="font-display text-xs sm:text-sm font-black">${place}.º Lugar</div>
+              <div class="mt-1 font-display text-xs sm:text-base font-black">${(p.score || 0).toLocaleString("es-DO")} pts</div>
+            </div>
+          </div>
+        `;
+      };
+
+      document.getElementById("podium-pedestals").innerHTML =
+        makeCol(sorted[1], 2, "h-36 sm:h-44", "bg-gradient-to-t from-slate-400 to-slate-200", "🥈") +
+        makeCol(sorted[0], 1, "h-48 sm:h-56", "bg-gradient-to-t from-amber-500 to-amber-300", "🥇") +
+        makeCol(sorted[2], 3, "h-28 sm:h-36", "bg-gradient-to-t from-amber-700 to-orange-400", "🥉");
+
+      const listEl = document.getElementById("podium-full-list");
+      if (sorted.length === 0) {
+        listEl.innerHTML = `<p class="text-center text-sm text-slate-400">Partida completada en Modo 1 Pantalla.</p>`;
+      } else {
+        listEl.innerHTML = sorted
+          .map(
+            (p, idx) => `
+            <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/90 px-4 py-3">
+              <div class="flex items-center gap-3">
+                <span class="w-6 font-display text-sm font-black text-amber-300">#${idx + 1}</span>
+                <span class="text-xl">${p.avatar}</span>
+                <div>
+                  <div class="font-display text-sm font-extrabold text-white">${escapeHtml(p.nickname)}</div>
+                  <div class="text-xs text-slate-400">${p.correctCount || 0} aciertos</div>
+                </div>
+              </div>
+              <div class="font-display text-base font-black text-emerald-400">${(p.score || 0).toLocaleString("es-DO")} pts</div>
+            </div>
+          `
+          )
+          .join("");
+      }
+    }
+
+    function exportCsv() {
+      const sorted = sortRanking((state.room && state.room.players) || {});
+      const rows = ["Posicion,Participante,Puntos,Aciertos"];
+      sorted.forEach((p, i) => {
+        rows.push(`${i + 1},"${String(p.nickname).replace(/"/g, '""')}",${p.score || 0},${p.correctCount || 0}`);
+      });
+      const blob = new Blob(["\uFEFF" + rows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Resultados_Caso_Mateo_${state.pin || "Sala"}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast("Resultados descargados en CSV.");
+    }
+
+    /**
+     * ============================================================================
+     * 7. EDITOR / REUTILIZACIÓN DE CUESTIONARIOS
+     * ============================================================================
+     */
+    function renderEditor() {
+      document.getElementById("input-quiz-title").value = state.quizTitle;
+      document.getElementById("editor-total-count").textContent = String(state.questions.length);
+      const list = document.getElementById("editor-items-list");
+      const letters = ["A", "B", "C", "D"];
+
+      list.innerHTML = state.questions
+        .map(
+          (q, idx) => `
+          <div class="rounded-2xl border border-white/10 bg-slate-950/85 p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="font-display text-xs font-black uppercase tracking-wider text-amber-300">Pregunta #${idx + 1}</span>
+              <div class="flex items-center gap-2">
+                <input
+                  type="text"
+                  data-idx="${idx}"
+                  data-k="topic"
+                  value="${escapeHtml(q.topic)}"
+                  class="rounded-lg border border-white/10 bg-slate-900 px-2.5 py-1 text-xs font-bold text-indigo-200"
+                />
+                ${
+                  state.questions.length > 1
+                    ? `<button type="button" data-del="${idx}" class="btn-del-q rounded-lg bg-rose-500/20 px-2.5 py-1 text-xs font-bold text-rose-300 hover:bg-rose-500/30 cursor-pointer">Eliminar</button>`
+                    : ""
+                }
+              </div>
+            </div>
+
+            <input
+              type="text"
+              data-idx="${idx}"
+              data-k="question"
+              value="${escapeHtml(q.question)}"
+              class="w-full rounded-xl border border-white/15 bg-slate-900 px-3.5 py-2 text-sm font-bold text-white"
+            />
+
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              ${q.options
+                .map(
+                  (opt, oIdx) => `
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="ed_corr_${idx}"
+                      data-idx="${idx}"
+                      data-corr="${oIdx}"
+                      ${q.correctIndex === oIdx ? "checked" : ""}
+                      class="h-4 w-4 accent-emerald-400 cursor-pointer"
+                      title="Marcar ${letters[oIdx]} como correcta"
+                    />
+                    <input
+                      type="text"
+                      data-idx="${idx}"
+                      data-opt="${oIdx}"
+                      value="${escapeHtml(opt)}"
+                      class="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-1.5 text-xs text-slate-100"
+                    />
+                  </div>
+                `
+                )
+                .join("")}
+            </div>
+
+            <input
+              type="text"
+              data-idx="${idx}"
+              data-k="explanation"
+              value="${escapeHtml(q.explanation || "")}"
+              class="w-full rounded-lg border border-white/10 bg-slate-900/70 px-3 py-1.5 text-xs text-slate-300"
+            />
+          </div>
+        `
+        )
+        .join("");
+
+      list.querySelectorAll("input[data-k]").forEach((el) => {
+        el.addEventListener("input", (e) => {
+          state.questions[parseInt(e.target.dataset.idx, 10)][e.target.dataset.k] = e.target.value;
+        });
+      });
+      list.querySelectorAll("input[data-opt]").forEach((el) => {
+        el.addEventListener("input", (e) => {
+          state.questions[parseInt(e.target.dataset.idx, 10)].options[parseInt(e.target.dataset.opt, 10)] = e.target.value;
+        });
+      });
+      list.querySelectorAll("input[data-corr]").forEach((el) => {
+        el.addEventListener("change", (e) => {
+          state.questions[parseInt(e.target.dataset.idx, 10)].correctIndex = parseInt(e.target.dataset.corr, 10);
+        });
+      });
+      list.querySelectorAll(".btn-del-q").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          state.questions.splice(parseInt(e.target.dataset.del, 10), 1);
+          renderEditor();
+          refreshQuizBadge();
+        });
+      });
+    }
+
+    function importQuizFromText(raw) {
+      const txt = (raw || "").trim();
+      if (!txt) {
+        toast("Pega primero un JSON o CSV válido.", "warn");
+        return;
+      }
+      try {
+        if (txt.startsWith("{") || txt.startsWith("[")) {
+          const parsed = JSON.parse(txt);
+          const arr = Array.isArray(parsed) ? parsed : parsed.questions;
+          if (!Array.isArray(arr) || !arr.length) throw new Error("JSON vacío");
+          state.questions = arr.map((q, i) => ({
+            topic: q.topic || `Tema ${i + 1}`,
+            question: q.question || "Pregunta",
+            options: Array.isArray(q.options) && q.options.length === 4 ? q.options : ["A", "B", "C", "D"],
+            correctIndex: typeof q.correctIndex === "number" ? q.correctIndex : 0,
+            explanation: q.explanation || ""
+          }));
+          if (parsed.title) state.quizTitle = parsed.title;
+        } else {
+          const lines = txt.split(/\r?\n/).filter((l) => l.trim());
+          const map = { A: 0, B: 1, C: 2, D: 3 };
+          const res = [];
+          lines.forEach((line, i) => {
+            const c = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map((x) => x.replace(/^"|"$/g, "").trim());
+            if (i === 0 && /pregunta/i.test(c[1] || c[2] || "")) return;
+            if (c.length >= 6) {
+              const hasTopic = c.length >= 7;
+              res.push({
+                topic: hasTopic ? c[0] : `Pregunta ${res.length + 1}`,
+                question: hasTopic ? c[1] : c[0],
+                options: hasTopic ? c.slice(2, 6) : c.slice(1, 5),
+                correctIndex: map[(hasTopic ? c[6] : c[5] || "A").toUpperCase()] ?? 0,
+                explanation: (hasTopic ? c[7] : c[6]) || ""
+              });
+            }
+          });
+          if (!res.length) throw new Error("CSV vacío");
+          state.questions = res;
+        }
+        renderEditor();
+        refreshQuizBadge();
+        toast(`¡Cuestionario actualizado (${state.questions.length} preguntas)!`);
+      } catch (err) {
+        toast("Formato inválido. Revisa la estructura JSON o CSV.", "err");
+      }
+    }
+
+    function refreshQuizBadge() {
+      document.getElementById("badge-quiz-summary").textContent = `${state.quizTitle} (${state.questions.length} preguntas)`;
+    }
+
+    /**
+     * ============================================================================
+     * 8. ENLACE DE EVENTOS AL CARGAR EL DOM
+     * ============================================================================
+     */
+    function bindAllEvents() {
+      renderAvatarGrid();
+
+      // Escucha mensajes entre pestañas (BroadcastChannel + storage)
+      if (bc) {
+        bc.onmessage = (ev) => {
+          const msg = ev.data;
+          if (!msg) return;
+          if (msg.type === "SYNC_ROOM" && state.mode === "player") {
+            onPlayerRoomSynced(msg.room);
+          }
+          if (msg.type === "PLAYER_ANSWER" && state.mode === "host" && state.room && msg.pin === state.room.pin) {
+            registerAnswerOnHost(msg.qIndex, msg.playerId, msg.payload);
+          }
+        };
+      }
+
+      window.addEventListener("storage", (ev) => {
+        if (!ev.key || !ev.newValue) return;
+        if (state.pin && ev.key === `mateo_v3_${state.pin}`) {
+          const updatedRoom = JSON.parse(ev.newValue);
+          if (state.mode === "host") {
+            state.room = updatedRoom;
+            if (updatedRoom.status === "lobby") renderHostLobbyPlayers();
+          } else if (state.mode === "player") {
+            onPlayerRoomSynced(updatedRoom);
+          }
+        }
+      });
+
+      // Detecta ?pin=XXXXXX en la URL (cuando escanean el QR)
+      const params = new URLSearchParams(window.location.search);
+      const qPin = params.get("pin");
+      if (qPin && /^\d{6}$/.test(qPin)) {
+        document.getElementById("join-pin").value = qPin;
+        document.getElementById("home-pin-input").value = qPin;
+        showView("view-player-join");
+        toast(`Sala ${qPin} detectada. Escribe tu nombre para jugar.`);
+      }
+
+      // Navegación
+      document.getElementById("btn-nav-home").addEventListener("click", () => {
+        clearInterval(state.timerId);
+        showView("view-home");
+      });
+
+      document.getElementById("btn-create-host").addEventListener("click", startHostLobby);
+      document.getElementById("btn-quick-single").addEventListener("click", startSingleScreenMode);
+
+      document.getElementById("btn-join-player").addEventListener("click", () => {
+        showView("view-player-join");
+      });
+
+      document.getElementById("home-pin-enter-btn").addEventListener("click", () => {
+        document.getElementById("join-pin").value = document.getElementById("home-pin-input").value.trim();
+        showView("view-player-join");
+      });
+
+      document.getElementById("btn-cancel-join").addEventListener("click", () => showView("view-home"));
+      document.getElementById("btn-confirm-join").addEventListener("click", joinAsPlayer);
+
+      // Lobby Anfitrión
+      document.getElementById("btn-copy-link").addEventListener("click", () => {
+        const txt = document.getElementById("lobby-url-box").textContent;
+        const ta = document.createElement("textarea");
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        toast("Enlace copiado al portapapeles.");
+      });
+
+      document.getElementById("btn-add-demo-players").addEventListener("click", addDemoPlayersToLobby);
+      document.getElementById("btn-lobby-cancel").addEventListener("click", () => showView("view-home"));
+      document.getElementById("btn-start-match").addEventListener("click", () => hostOpenQuestion(0));
+
+      // Controles de Juego Anfitrión
+      document.getElementById("btn-host-pause").addEventListener("click", () => {
+        state.isPaused = !state.isPaused;
+        document.getElementById("btn-host-pause").textContent = state.isPaused ? "▶ Reanudar" : "⏸ Pausar";
+      });
+
+      document.getElementById("btn-host-reveal").addEventListener("click", hostCloseQuestion);
+      document.getElementById("btn-host-finish-all").addEventListener("click", hostFinishMatch);
+
+      document.getElementById("btn-host-next-q").addEventListener("click", () => {
+        const next = (state.room ? state.room.qIndex : 0) + 1;
+        if (state.room && next < state.room.questions.length) {
+          hostOpenQuestion(next);
+        } else {
+          hostFinishMatch();
+        }
+      });
+
+      // Podio
+      document.getElementById("btn-podium-replay").addEventListener("click", () => {
+        if (state.mode === "single") startSingleScreenMode();
+        else startHostLobby();
+      });
+      document.getElementById("btn-podium-csv").addEventListener("click", exportCsv);
+
+      // Editor / Reutilizar
+      const openEditor = () => {
+        renderEditor();
+        showView("view-reuse");
+      };
+      document.getElementById("btn-nav-reuse").addEventListener("click", openEditor);
+      document.getElementById("home-open-editor-btn").addEventListener("click", openEditor);
+      document.getElementById("btn-editor-back").addEventListener("click", () => showView("view-home"));
+
+      document.getElementById("input-quiz-title").addEventListener("input", (e) => {
+        state.quizTitle = e.target.value.trim() || "Cuestionario Personalizado";
+        refreshQuizBadge();
+      });
+
+      document.getElementById("btn-editor-reset").addEventListener("click", () => {
+        state.quizTitle = "Reto Motivacional: El Caso de Mateo";
+        state.questions = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+        renderEditor();
+        refreshQuizBadge();
+        toast("Preguntas originales restauradas.");
+      });
+
+      document.getElementById("btn-editor-add").addEventListener("click", () => {
+        state.questions.push({
+          topic: `Tema ${state.questions.length + 1}`,
+          question: "Nueva pregunta...",
+          options: ["Opción A", "Opción B", "Opción C", "Opción D"],
+          correctIndex: 0,
+          explanation: "Explicación breve."
+        });
+        renderEditor();
+        refreshQuizBadge();
+      });
+
+      document.getElementById("btn-parse-import").addEventListener("click", () => {
+        importQuizFromText(document.getElementById("textarea-import").value);
+      });
+
+      document.getElementById("file-import-input").addEventListener("change", (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => {
+          document.getElementById("textarea-import").value = ev.target.result;
+          importQuizFromText(ev.target.result);
+        };
+        r.readAsText(f);
+      });
+
+      document.getElementById("btn-editor-export").addEventListener("click", () => {
+        const data = JSON.stringify({ title: state.quizTitle, questions: state.questions }, null, 2);
+        const blob = new Blob([data], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${state.quizTitle.replace(/[^a-z0-9]/gi, "_")}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast("Cuestionario exportado en JSON.");
+      });
+
+      document.getElementById("btn-editor-launch").addEventListener("click", startHostLobby);
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bindAllEvents);
+    } else {
+      bindAllEvents();
+    }
+  </script>
+</body>
+</html>
